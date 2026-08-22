@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Pulse</string>
+    <string name="market_monitor_channel_name">Market Live Monitor</string>
+    <string name="market_monitor_channel_desc">Active monitoring of Indian stock news and filings</string>
+    <string name="alert_channel_name">Market Alerts</string>
+    <string name="alert_channel_desc">Early warning risk and momentum signals</string>
+</resources>

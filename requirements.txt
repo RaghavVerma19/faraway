@@ -1,0 +1,8 @@
+flask
+pyTelegramBotAPI
+pywebpush
+cryptography
+py-vapid
+waitress
+yfinance
+requests

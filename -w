@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NewsPulse Crash Tracker</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#171614">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="stylesheet" href="/style.css?v=2">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="site-noise" aria-hidden="true"></div>
+
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <section id="dashboardView" class="dashboard-shell">
+    <header class="masthead">
+      <div class="brand-cluster">
+        <div class="brand-lockup">
+          <span class="brand-mark"></span>
+          <div>
+            <p class="brand-kicker">Crash Tracker</p>
+            <h1 class="brand-name">NewsPulse</h1>
+          </div>
+        </div>
+      </div>
+
+      <div class="agent-status" id="agentStatus">
+        <span class="status-dot" id="statusDot"></span>
+        <span class="status-label" id="statusLabel">Starting...</span>
+      </div>
+
+      <nav class="main-nav" aria-label="Primary">
+        <button class="nav-link active" data-tab="alerts" type="button">Alerts</button>
+        <button class="nav-link" data-tab="watchlist" type="button">Watchlist</button>
+        <button class="nav-link" data-tab="filings" type="button">Filings</button>
+        <button class="nav-link" data-tab="signals" type="button">Signals</button>
+      </nav>
+
+      <div class="header-actions">
+        <button class="icon-btn" id="pushToggleBtn" title="Push notifications" aria-label="Push notifications"></button>
+        <button class="icon-btn" id="refreshBtn" title="Refresh data" aria-label="Refresh">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="stats-bar">
+      <span class="stat-chip">Alerts today: <strong id="statsAlertsToday">\u2014</strong></span>
+      <span class="stat-chip">Critical: <strong id="statsCriticalToday">\u2014</strong></span>
+      <span class="stat-chip">Watchlist: <strong id="statsWatchlistCount">\u2014</strong></span>
+    </div>
+
+    <div id="installBanner" class="notice-banner" hidden>
+      <div class="notice-icon" data-icon="install"></div>
+      <div class="notice-copy">
+        <strong>Install the dashboard</strong>
+        <span>Keep the crash tracker pinned for faster access and live push alerts.</span>
+      </div>
+      <div class="notice-actions">
+        <button id="installBtn" class="btn btn-gold btn-small" type="button">Install</button>
+        <button id="installDismiss" class="btn btn-ghost btn-small" type="button">Dismiss</button>
+      </div>
+    </div>
+
+    <main class="dashboard-main">
+      <section id="tab-alerts" class="tab-pane active">
+        <section class="panel surface-panel">
+          <div class="panel-header panel-header-spread">
+            <div>
+              <p class="eyebrow">Crash/Surge Alerts</p>
+              <h2>Real-time composite alerts</h2>
+            </div>
+            <div class="filter-pills" id="alertTabs">
+              <button class="filter-pill active" data-filter="all" type="button">All</button>
+              <button class="filter-pill" data-filter="CRITICAL" type="button">Critical</button>
+              <button class="filter-pill" data-filter="HIGH" type="button">High</button>
+              <button class="filter-pill" data-filter="WATCH" type="button">Watch</button>
+            </div>
+          </div>
+          <div class="alerts-list" id="alertsList">
+            <p class="empty-msg">Scanning for crash/surge signals. Alerts appear here when detected.</p>
+          </div>
+        </section>
+      </section>
+
+      <section id="tab-watchlist" class="tab-pane">
+        <section class="panel surface-panel">
+          <div class="panel-header panel-header-spread">
+            <div>
+              <p class="eyebrow">Watchlist</p>
+              <h2>Tracked symbols</h2>
+            </div>
+            <div class="panel-actions">
+              <button class="btn btn-gold" id="addSymbolBtn" type="button">Add Symbol</button>
+            </div>
+          </div>
+          <div id="watchlistList" class="watchlist-list">
+            <p class="empty-msg">No symbols on watchlist. Add symbols to track crash signals.</p>
+          </div>
+        </section>
+      </section>
+
+      <section id="tab-filings" class="tab-pane">
+        <section class="panel surface-panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Structured Filings</p>
+              <h2>NSE / BSE / SEBI filings</h2>
+            </div>
+          </div>
+          <div class="filings-list" id="filingsList">
+            <p class="empty-msg">Fetching filings from exchanges...</p>
+          </div>
+        </section>
+      </section>
+
+      <section id="tab-signals" class="tab-pane">
+        <section class="panel surface-panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Signal Log</p>
+              <h2>All processed headlines and filings</h2>
+            </div>
+          </div>
+          <div class="signals-list" id="signalsList">
+            <p class="empty-msg">Signals appear here as the engine processes data.</p>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <nav class="mobile-dock" aria-label="Mobile navigation">
+      <button class="dock-link active" data-tab="alerts" type="button">
+        <span class="dock-icon" data-icon="activity"></span>
+        <span class="dock-label">Alerts</span>
+      </button>
+      <button class="dock-link" data-tab="watchlist" type="button">
+        <span class="dock-icon" data-icon="holdings"></span>
+        <span class="dock-label">Watchlist</span>
+      </button>
+      <button class="dock-link" data-tab="filings" type="button">
+        <span class="dock-icon" data-icon="source"></span>
+        <span class="dock-label">Filings</span>
+      </button>
+      <button class="dock-link" data-tab="signals" type="button">
+        <span class="dock-icon" data-icon="insights"></span>
+        <span class="dock-label">Signals</span>
+      </button>
+    </nav>
+  </section>
+
+  <div id="addSymbolModal" class="modal" hidden>
+    <div class="modal-content">
+      <button class="modal-close" type="button" aria-label="Close modal"></button>
+      <p class="eyebrow">Add to Watchlist</p>
+      <h2>Enter symbol</h2>
+      <label class="field">
+        <span>Symbol</span>
+        <input type="text" id="symbolInput" placeholder="e.g. RELIANCE" required>
+      </label>
+      <button class="btn btn-gold btn-block" id="addSymbolSubmit" type="button">Add</button>
+      <div id="addSymbolResult" class="import-result" hidden></div>
+    </div>
+  </div>
+
+  <script src="/app.js?v=2"></script>
+</body>
+</html>

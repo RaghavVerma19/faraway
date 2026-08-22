@@ -1,0 +1,21 @@
+.env
+__pycache__/
+session.json
+cookies.json
+data/*.db
+*.pem
+data/*.csv
+data/*.json
+
+# Android
+android-app/.gradle/
+android-app/.kotlin/
+android-app/build/
+android-app/app/build/
+*.apk
+*.aab
+*.keystore
+android-app/captures/
+android-app/.externalNativeBuild/
+android-app/.cxx/
+android-app/local.properties
