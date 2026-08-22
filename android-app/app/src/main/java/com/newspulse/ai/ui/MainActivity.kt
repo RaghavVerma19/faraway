@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ShowChart
-import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Visibility
@@ -40,10 +40,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.newspulse.ai.ui.screens.ActivityScreen
 import com.newspulse.ai.ui.screens.AlertsScreen
 import com.newspulse.ai.ui.screens.FilingsScreen
 import com.newspulse.ai.ui.screens.OnboardingSetupScreen
-import com.newspulse.ai.ui.screens.PortfolioScreen
 import com.newspulse.ai.ui.screens.SettingsScreen
 import com.newspulse.ai.ui.screens.WatchlistScreen
 import com.newspulse.ai.ui.theme.NewsPulseAITheme
@@ -57,7 +57,7 @@ import com.newspulse.ai.ui.theme.Typography
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
     object Alerts : Screen("alerts", "Feed", Icons.Default.Notifications)
-    object Portfolio : Screen("portfolio", "Broker", Icons.Default.AccountBalanceWallet)
+    object Activity : Screen("activity", "Activity", Icons.Default.History)
     object Watchlist : Screen("watchlist", "Watchlist", Icons.Default.Visibility)
     object Filings : Screen("filings", "Filings", Icons.AutoMirrored.Filled.ShowChart)
     object Settings : Screen("settings", "Settings", Icons.Default.Settings)
@@ -107,7 +107,7 @@ fun MainAppScaffold(viewModel: MainViewModel) {
 
     val items = listOf(
         Screen.Alerts,
-        Screen.Portfolio,
+        Screen.Activity,
         Screen.Watchlist,
         Screen.Filings,
         Screen.Settings
@@ -160,7 +160,7 @@ fun MainAppScaffold(viewModel: MainViewModel) {
                 .padding(innerPadding)
         ) {
             composable(Screen.Alerts.route) { AlertsScreen(viewModel = viewModel) }
-            composable(Screen.Portfolio.route) { PortfolioScreen(viewModel = viewModel) }
+            composable(Screen.Activity.route) { ActivityScreen(viewModel = viewModel) }
             composable(Screen.Watchlist.route) { WatchlistScreen(viewModel = viewModel) }
             composable(Screen.Filings.route) { FilingsScreen(viewModel = viewModel) }
             composable(Screen.Settings.route) { SettingsScreen(viewModel = viewModel) }

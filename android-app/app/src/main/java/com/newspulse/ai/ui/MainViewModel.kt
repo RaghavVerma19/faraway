@@ -7,6 +7,7 @@ import com.newspulse.ai.data.local.AppDatabase
 import com.newspulse.ai.data.model.Alert
 import com.newspulse.ai.data.model.Filing
 import com.newspulse.ai.data.model.LiveQuote
+import com.newspulse.ai.data.model.PaperTradeOrder
 import com.newspulse.ai.data.model.WatchlistItem
 import com.newspulse.ai.data.preferences.UserPreferences
 import com.newspulse.ai.data.remote.GroqApiService
@@ -44,6 +45,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     val filings: StateFlow<List<Filing>> = database.filingDao()
         .getRecentFilings(50)
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    val executedTrades: StateFlow<List<PaperTradeOrder>> = database.portfolioDao()
+        .getRecentOrders(50)
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val upstoxAccessToken = preferences.upstoxAccessToken
