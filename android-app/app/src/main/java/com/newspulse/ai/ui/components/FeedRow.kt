@@ -139,36 +139,6 @@ fun FeedRow(
                 color = OnSurfacePrimary
             )
 
-            // AI Context / Reasoning
-            if (alert.reasoning.isNotBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(SurfaceContainerLow)
-                        .padding(horizontal = 10.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.AutoAwesome,
-                        contentDescription = "AI Context",
-                        tint = TwitterBlue,
-                        modifier = Modifier
-                            .size(14.dp)
-                            .padding(top = 2.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = alert.reasoning,
-                        style = Typography.bodyMedium,
-                        color = OnSurfaceSecondary,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-
             Spacer(modifier = Modifier.height(8.dp))
 
             // Real Market Execution Button for CRITICAL / HIGH Alerts (Zero Paper Sim)
@@ -203,7 +173,7 @@ fun FeedRow(
                     }
 
                     Text(
-                        text = "Score ${alert.trustScore} • Est. $impactFormatted",
+                        text = "Score ${alert.trustScore}",
                         style = Typography.labelSmall,
                         color = if (hasNegativeImpact) CrashContent else SurgeContent,
                         fontWeight = FontWeight.SemiBold

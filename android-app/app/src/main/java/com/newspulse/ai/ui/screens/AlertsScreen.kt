@@ -134,11 +134,21 @@ fun AlertsScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Pulse",
-                    style = Typography.headlineSmall,
-                    color = OnSurfacePrimary
-                )
+                Column {
+                    Text(
+                        text = "NewsPulse",
+                        style = Typography.headlineSmall,
+                        color = OnSurfacePrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Crash Tracker",
+                        style = Typography.labelSmall,
+                        color = Color(0xFFD7BC7A),
+                        fontWeight = FontWeight.Medium,
+                        letterSpacing = 0.8.sp
+                    )
+                }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { isSearchActive = !isSearchActive }) {
@@ -356,7 +366,7 @@ fun AlertsScreen(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Panic Score: ${alert.trustScore}/100 • Est. Impact: $impactFormatted",
+                        text = "Panic Score: ${alert.trustScore}/100",
                         style = Typography.titleSmall,
                         color = if (alert.impactPct < 0) CrashContent else SurgeContent
                     )
@@ -403,106 +413,6 @@ fun AlertsScreen(
                             style = Typography.bodySmall,
                             color = OnSurfacePrimary
                         )
-                    }
-
-                    // 2. Contagion & Ecosystem Agent Breakdown
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(SurfaceContainerLow)
-                            .border(1.dp, OutlineDivider, RoundedCornerShape(8.dp))
-                            .padding(10.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Hub,
-                                contentDescription = "Contagion",
-                                tint = TwitterBlue,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = "CONTAGION AGENT (Macro & Peers)",
-                                style = Typography.labelSmall,
-                                color = TwitterBlue,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        if (alert.contagionPeers.isNotEmpty()) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                alert.contagionPeers.forEach { peer ->
-                                    Box(
-                                        modifier = Modifier
-                                            .background(SurfaceBase, RoundedCornerShape(999.dp))
-                                            .border(1.dp, OutlineDivider, RoundedCornerShape(999.dp))
-                                            .clickable {
-                                                searchQuery = peer
-                                                isSearchActive = true
-                                                selectedAlertDetail = null
-                                            }
-                                            .padding(horizontal = 8.dp, vertical = 2.dp)
-                                    ) {
-                                        Text(peer, style = Typography.labelSmall, color = TwitterBlue)
-                                    }
-                                }
-                            }
-                        }
-                        if (alert.contagionRationale.isNotBlank()) {
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = alert.contagionRationale,
-                                style = Typography.bodySmall,
-                                color = OnSurfaceSecondary
-                            )
-                        }
-                    }
-
-                    // 3. Quant & Defense Officer Breakdown
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(SurfaceContainerLow)
-                            .border(1.dp, OutlineDivider, RoundedCornerShape(8.dp))
-                            .padding(10.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.TrendingDown,
-                                contentDescription = "Quant",
-                                tint = CrashContent,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = "QUANT RISK & DEFENSE OFFICER",
-                                style = Typography.labelSmall,
-                                color = CrashContent,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Prescribed Action: ${alert.quantAction} • Limit Risk: ${alert.circuitRisk}",
-                            style = Typography.bodySmall,
-                            color = OnSurfacePrimary,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        if (alert.hedgingStrategy.isNotBlank()) {
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = "Strategy: ${alert.hedgingStrategy}",
-                                style = Typography.bodySmall,
-                                color = OnSurfaceSecondary
-                            )
-                        }
                     }
 
                     Spacer(modifier = Modifier.height(14.dp))
