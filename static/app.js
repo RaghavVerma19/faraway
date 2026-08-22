@@ -3,6 +3,10 @@ let pushEnabled = false;
 let VAPID_PUBLIC_KEY = null;
 let refreshInterval = null;
 let installPrompt = null;
+let alertOffset = 0;
+let alertHasMore = true;
+let isAlertLoading = false;
+const ALERT_PAGE_SIZE = 20;
 
 const ICONS = {
   bellOff: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><path d="M3 3l18 18"/></svg>',
@@ -127,7 +131,7 @@ function activateTab(tabName) {
   });
   clearInterval(refreshInterval);
   refreshInterval = null;
-  if (tabName === 'alerts') { loadAlerts(); refreshInterval = setInterval(loadAlerts, 30000); }
+  if (tabName === 'alerts') { alertOffset = 0; alertHasMore = true; loadAlerts(false); refreshInterval = setInterval(function(){ alertOffset = 0; alertHasMore = true; loadAlerts(false); }, 30000); }
   if (tabName === 'watchlist') { loadWatchlist(); }
   if (tabName === 'filings') { loadFilings(); }
 }
@@ -142,20 +146,38 @@ document.getElementById('alertTabs').addEventListener('click', function (e) {
   document.querySelectorAll('#alertTabs .filter-pill').forEach(function (pill) { pill.classList.remove('active'); });
   btn.classList.add('active');
   currentFilter = btn.dataset.filter;
-  loadAlerts();
+  alertOffset = 0;
+  alertHasMore = true;
+  const list = document.getElementById('alertsList');
+  if (list) list.innerHTML = '';
+  loadAlerts(false);
 });
 
-async function loadAlerts() {
+async function loadAlerts(isLoadMore) {
+  if (isAlertLoading) return;
+  isAlertLoading = true;
+  const loadMoreBtn = document.getElementById('loadMoreBtn');
   try {
-    const alerts = await fetchJSON('/api/alerts?limit=100');
+    const offsetParam = isLoadMore ? alertOffset : 0;
+    const alerts = await fetchJSON(`/api/alerts?limit=${ALERT_PAGE_SIZE}&tier=${currentFilter}&offset=${offsetParam}`);
     const list = document.getElementById('alertsList');
-    list.innerHTML = '';
-    const filtered = currentFilter === 'all' ? alerts : alerts.filter(function (a) { return a.tier === currentFilter; });
-    if (!filtered.length) {
+    if (!isLoadMore) {
+      list.innerHTML = '';
+      alertOffset = 0;
+    }
+    if (!alerts.length && !isLoadMore) {
       list.innerHTML = '<p class="empty-msg">No alerts yet. The engine scans continuously.</p>';
+      alertHasMore = false;
+      if (loadMoreBtn) loadMoreBtn.hidden = true;
       return;
     }
-    filtered.forEach(function (alert) {
+    // if loadMore and no results, hide button
+    if (!alerts.length && isLoadMore) {
+      alertHasMore = false;
+      if (loadMoreBtn) loadMoreBtn.hidden = true;
+      return;
+    }
+    alerts.forEach(function (alert) {
       const item = document.createElement('article');
       item.className = 'alert-item';
       item.innerHTML = '<div class="alert-topline"><span class="alert-tier ' + alert.tier.toLowerCase() + '">' + alert.tier + '</span><span class="alert-impact ' + (alert.impact_pct < 0 ? 'impact-negative' : 'impact-positive') + '">' + (alert.impact_formatted || '~') + '</span><span class="alert-time">' + fmtDate(alert.timestamp) + '</span></div><div class="alert-meta"><strong>' + escHtml(alert.symbol) + '</strong> <span class="alert-company">' + escHtml(alert.company) + '</span></div>';
@@ -164,10 +186,37 @@ async function loadAlerts() {
       });
       list.appendChild(item);
     });
+    alertOffset += alerts.length;
+    alertHasMore = alerts.length === ALERT_PAGE_SIZE;
+    if (loadMoreBtn) {
+      loadMoreBtn.hidden = !alertHasMore;
+      loadMoreBtn.disabled = false;
+      loadMoreBtn.textContent = 'Load More (20)';
+    }
   } catch (err) {
     console.error('loadAlerts error:', err);
+  } finally {
+    isAlertLoading = false;
   }
 }
+
+// Load More button + auto-infinite scroll via sentinel
+document.getElementById('loadMoreBtn').addEventListener('click', function () {
+  if (!alertHasMore || isAlertLoading) return;
+  const btn = this;
+  btn.disabled = true;
+  btn.textContent = 'Loading...';
+  loadAlerts(true);
+});
+const _alertsObserver = new IntersectionObserver(function (entries) {
+  entries.forEach(function (entry) {
+    if (entry.isIntersecting && alertHasMore && !isAlertLoading) {
+      loadAlerts(true);
+    }
+  });
+}, { rootMargin: '200px' });
+const _sentinel = document.getElementById('alertsSentinel');
+if (_sentinel) _alertsObserver.observe(_sentinel);
 
 async function showAlertDetail(alert) {
   const existing = document.getElementById('alertDetailModal');
@@ -319,7 +368,8 @@ document.getElementById('pushToggleBtn').addEventListener('click', async functio
 document.getElementById('refreshBtn').addEventListener('click', function () {
   const btn = document.getElementById('refreshBtn');
   btn.disabled = true;
-  loadAlerts();
+  alertOffset = 0; alertHasMore = true;
+  loadAlerts(false);
   loadWatchlist();
   loadFilings();
   loadStats();

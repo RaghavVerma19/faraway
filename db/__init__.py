@@ -3,6 +3,7 @@ from .alerts import (
     log_alert,
     get_alerts,
     get_recent_alerts_for_symbol,
+    count_alerts_by_tier_today,
 )
 from .watchlist import (
     add_to_watchlist,

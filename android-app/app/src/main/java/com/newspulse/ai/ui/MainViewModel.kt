@@ -29,9 +29,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val groqApiService = GroqApiService()
     val upstoxBrokerService = UpstoxBrokerService()
 
-    val alerts: StateFlow<List<Alert>> = database.alertDao()
-        .getAllAlerts(100)
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    // Step 1 & 2: Paginated alerts - load 20 at a time, filter in DB (not in UI)
+    private val _alertTier = MutableStateFlow("ALL")
+    private val _alertPageSize = 20
+    private val _alertOffset = MutableStateFlow(0)
+    private val _alertsPaged = MutableStateFlow<List<Alert>>(emptyList())
+    val alerts: StateFlow<List<Alert>> = _alertsPaged.asStateFlow()
+    private var _hasMoreAlerts = true
+    val hasMoreAlerts: Boolean get() = _hasMoreAlerts
 
     val watchlist: StateFlow<List<WatchlistItem>> = database.watchlistDao()
         .getWatchlist()
@@ -86,7 +91,39 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             if (preferences.upstoxAccessToken.value.isNotBlank()) {
                 refreshUpstoxData()
             }
+            // Step 2: Load first page of alerts (20) with DB filtering
+            loadAlertsPaged("ALL", reset = true)
         }
+    }
+
+    // Step 2: Pagination helpers - called from AlertsScreen
+    fun loadAlertsPaged(tier: String = _alertTier.value, reset: Boolean = false) {
+        viewModelScope.launch {
+            if (reset) {
+                _alertOffset.value = 0
+                _hasMoreAlerts = true
+            }
+            val offset = if (reset) 0 else _alertOffset.value
+            val list = database.alertDao().getAlertsPagedSync(tier, _alertPageSize, offset)
+            if (reset) {
+                _alertsPaged.value = list
+            } else {
+                _alertsPaged.value = _alertsPaged.value + list
+            }
+            _alertTier.value = tier
+            _alertOffset.value = offset + list.size
+            _hasMoreAlerts = list.size == _alertPageSize
+        }
+    }
+
+    fun loadNextAlertPage() {
+        if (!_hasMoreAlerts) return
+        loadAlertsPaged(_alertTier.value, reset = false)
+    }
+
+    fun setAlertFilter(tier: String) {
+        _alertTier.value = tier
+        loadAlertsPaged(tier, reset = true)
     }
 
     fun triggerManualScan() {

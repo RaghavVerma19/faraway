@@ -108,21 +108,14 @@ fun AlertsScreen(
         watchlist.map { it.symbol }.toSet()
     }
 
-    val filteredAlerts = remember(alerts, selectedFilter, searchQuery) {
-        alerts.filter { alert ->
-            val matchesFilter = when (selectedFilter) {
-                "CRITICAL" -> alert.tier == SeverityTier.CRITICAL
-                "HIGH" -> alert.tier == SeverityTier.HIGH
-                "WATCH" -> alert.tier == SeverityTier.WATCH
-                else -> true
-            }
-            val matchesSearch = if (searchQuery.isBlank()) true else {
-                alert.symbol.contains(searchQuery, ignoreCase = true) ||
-                        alert.company.contains(searchQuery, ignoreCase = true) ||
-                        alert.headline.contains(searchQuery, ignoreCase = true) ||
-                        alert.contagionPeers.any { it.contains(searchQuery, ignoreCase = true) }
-            }
-            matchesFilter && matchesSearch
+    // Step 2: Tier filtering now done in DB (Room index) via MainViewModel.getAlertsPaged - not in-memory
+    val filteredAlerts = remember(alerts, searchQuery) {
+        if (searchQuery.isBlank()) alerts
+        else alerts.filter { alert ->
+            alert.symbol.contains(searchQuery, ignoreCase = true) ||
+                    alert.company.contains(searchQuery, ignoreCase = true) ||
+                    alert.headline.contains(searchQuery, ignoreCase = true) ||
+                    alert.contagionPeers.any { it.contains(searchQuery, ignoreCase = true) }
         }
     }
 
@@ -237,7 +230,10 @@ fun AlertsScreen(
                     val isSelected = selectedFilter == filter
                     FilterChip(
                         selected = isSelected,
-                        onClick = { selectedFilter = filter },
+                        onClick = {
+                            selectedFilter = filter
+                            viewModel.setAlertFilter(filter) // Step 2: DB filter, load 20
+                        },
                         label = {
                             Text(
                                 text = filter,
@@ -313,6 +309,16 @@ fun AlertsScreen(
                         },
                         onClick = { selectedAlertDetail = alert }
                     )
+                }
+                // Step 2: Pagination - Load More like Instagram
+                item {
+                    if (viewModel.hasMoreAlerts) {
+                        Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                            OutlinedButton(onClick = { viewModel.loadNextAlertPage() }, shape = RoundedCornerShape(999.dp)) {
+                                Text("Load More (20)", style = Typography.labelSmall, color = OnSurfacePrimary)
+                            }
+                        }
+                    }
                 }
             }
         }

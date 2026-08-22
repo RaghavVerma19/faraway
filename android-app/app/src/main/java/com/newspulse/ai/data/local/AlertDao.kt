@@ -15,6 +15,13 @@ interface AlertDao {
     @Query("SELECT * FROM alerts WHERE tier = :tier ORDER BY timestamp DESC LIMIT :limit")
     fun getAlertsByTier(tier: String, limit: Int = 100): Flow<List<Alert>>
 
+    // Step 2: Paginated query - like Instagram feed, load 20 at a time
+    @Query("SELECT * FROM alerts WHERE (:tier = 'ALL' OR tier = :tier) ORDER BY timestamp DESC LIMIT :limit OFFSET :offset")
+    fun getAlertsPaged(tier: String, limit: Int, offset: Int): Flow<List<Alert>>
+
+    @Query("SELECT * FROM alerts WHERE (:tier = 'ALL' OR tier = :tier) ORDER BY timestamp DESC LIMIT :limit OFFSET :offset")
+    suspend fun getAlertsPagedSync(tier: String, limit: Int, offset: Int): List<Alert>
+
     @Query("SELECT * FROM alerts WHERE symbol = :symbol AND timestamp >= :sinceTimestamp ORDER BY timestamp DESC")
     suspend fun getRecentAlertsForSymbol(symbol: String, sinceTimestamp: Long): List<Alert>
 

@@ -22,7 +22,7 @@ data class SignalDetail(
     val eventTypeHash: String? = null
 )
 
-@Entity(tableName = "alerts")
+@Entity(tableName = "alerts", indices = [androidx.room.Index(value = ["tier"]), androidx.room.Index(value = ["tier", "timestamp"]), androidx.room.Index(value = ["timestamp"])])
 @TypeConverters(AlertConverters::class)
 data class Alert(
     @PrimaryKey(autoGenerate = true)

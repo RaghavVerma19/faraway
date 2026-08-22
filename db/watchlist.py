@@ -5,6 +5,11 @@ def add_to_watchlist(symbol):
         (symbol.upper(),)
     )
     conn.commit()
+    try:
+        from cache import stats_cache
+        stats_cache.delete("stats")
+    except Exception:
+        pass
 
 
 def remove_from_watchlist(symbol):
@@ -14,6 +19,11 @@ def remove_from_watchlist(symbol):
         (symbol.upper(),)
     )
     conn.commit()
+    try:
+        from cache import stats_cache
+        stats_cache.delete("stats")
+    except Exception:
+        pass
 
 
 def get_watchlist():

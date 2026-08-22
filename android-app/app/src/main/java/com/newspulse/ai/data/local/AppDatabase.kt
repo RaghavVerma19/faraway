@@ -22,7 +22,7 @@ import com.newspulse.ai.data.model.WatchlistItem
         PortfolioHolding::class,
         PaperTradeOrder::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(AlertConverters::class)

@@ -44,3 +44,5 @@ class TimedCache:
 
 price_cache = TimedCache(default_ttl=60, max_size=128)
 news_cache = TimedCache(default_ttl=300, max_size=64)
+# Step 3: Stats cache - Overview counts (15 sec TTL = instant reload, still fresh)
+stats_cache = TimedCache(default_ttl=15, max_size=16)

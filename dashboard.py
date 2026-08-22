@@ -13,7 +13,7 @@ load_local_env()
 
 import db
 from push_utils import send_push_to_all, get_vapid_public_key
-from cache import price_cache
+from cache import price_cache, stats_cache
 from price_service import fetch_prices
 
 DATA_DIR = Path(__file__).parent / "data"
@@ -94,8 +94,17 @@ def api_agent_status():
 
 @app.route("/api/alerts")
 def api_alerts():
-    limit = request.args.get("limit", 100, type=int)
-    alerts = db.get_alerts(limit=limit)
+    limit = request.args.get("limit", 50, type=int)
+    tier = request.args.get("tier", "all")
+    offset = request.args.get("offset", 0, type=int)
+    # sanitize limit
+    limit = max(1, min(limit, 100))
+    if tier:
+        tier = tier.strip()
+        # keep 'all' as is, others upper
+        if tier.lower() != "all":
+            tier = tier.upper()
+    alerts = db.get_alerts(limit=limit, tier=tier, offset=offset)
     for a in alerts:
         cred = SOURCE_CREDIBILITY.get(a.get("source", "newsapi"), 0.5) if "source" in a else 0.5
         impact = estimate_price_impact(a.get("headline", ""), cred)
@@ -163,17 +172,26 @@ def api_signals():
 
 @app.route("/api/stats")
 def api_stats():
-    alerts = db.get_alerts(limit=1000)
-    today = datetime.now().strftime("%Y-%m-%d")
-    today_alerts = [a for a in alerts if a.get("timestamp", "").startswith(today)]
-    return jsonify({
-        "alerts_today": len(today_alerts),
-        "critical_today": sum(1 for a in today_alerts if a.get("tier") == "CRITICAL"),
-        "high_today": sum(1 for a in today_alerts if a.get("tier") == "HIGH"),
-        "watch_today": sum(1 for a in today_alerts if a.get("tier") == "WATCH"),
-        "total_alerts": len(alerts),
+    # Step 3: Return cached stats if fresh - 15 sec instant reload
+    cached = stats_cache.get("stats")
+    if cached is not None:
+        return jsonify(cached)
+    # Fast SQL count - no Python loop, uses idx_alerts_tier_timestamp
+    counts = db.count_alerts_by_tier_today()
+    # total_alerts still needs fast count - use same SQL without date filter for speed
+    conn = db.conn.get_conn()
+    row = conn.execute("SELECT COUNT(*) as cnt FROM alerts").fetchone()
+    total = row["cnt"] if row else 0
+    result = {
+        "alerts_today": counts.get("total", 0),
+        "critical_today": counts.get("critical", 0),
+        "high_today": counts.get("high", 0),
+        "watch_today": counts.get("watch", 0),
+        "total_alerts": total,
         "watchlist_count": len(db.get_watchlist()),
-    })
+    }
+    stats_cache.set("stats", result, ttl=15)
+    return jsonify(result)
 
 
 @app.route("/api/push/subscribe", methods=["POST"])

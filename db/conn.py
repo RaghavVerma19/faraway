@@ -90,6 +90,8 @@ def init_db():
 
         CREATE INDEX IF NOT EXISTS idx_alerts_symbol ON alerts(symbol);
         CREATE INDEX IF NOT EXISTS idx_alerts_timestamp ON alerts(timestamp);
+        CREATE INDEX IF NOT EXISTS idx_alerts_tier ON alerts(tier);
+        CREATE INDEX IF NOT EXISTS idx_alerts_tier_timestamp ON alerts(tier, timestamp DESC);
         CREATE INDEX IF NOT EXISTS idx_signal_log_symbol ON signal_log(symbol);
 
         CREATE TABLE IF NOT EXISTS push_subscriptions (
